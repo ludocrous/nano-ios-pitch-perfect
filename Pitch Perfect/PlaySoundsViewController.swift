@@ -47,10 +47,21 @@ class PlaySoundsViewController: UIViewController, AVAudioPlayerDelegate {
         setPlaybackControlsVisibility(true)
     }
     
-    func playAudioWithVariablePitch(pitch: Float){
+    func stopAndResetAudioPlayback() {
         audioPlayer.stop()
+        audioPlayer.currentTime = 0.0
         audioEngine.stop()
         audioEngine.reset()
+    }
+    
+    func playAudioWithVariableRate(rate: Float) {
+        stopAndResetAudioPlayback()
+        audioPlayer.rate = rate
+        audioPlayer.play()
+    }
+    
+    func playAudioWithVariablePitch(pitch: Float){
+        stopAndResetAudioPlayback()
         
         var audioPlayerNode = AVAudioPlayerNode()
         audioEngine.attachNode(audioPlayerNode)
@@ -70,9 +81,7 @@ class PlaySoundsViewController: UIViewController, AVAudioPlayerDelegate {
     
 
     func playAudioWithReverb(){
-        audioPlayer.stop()
-        audioEngine.stop()
-        audioEngine.reset()
+        stopAndResetAudioPlayback()
         
         var audioPlayerNode = AVAudioPlayerNode()
         audioEngine.attachNode(audioPlayerNode)
@@ -91,9 +100,7 @@ class PlaySoundsViewController: UIViewController, AVAudioPlayerDelegate {
     }
 
     func playAudioWithEcho(){
-        audioPlayer.stop()
-        audioEngine.stop()
-        audioEngine.reset()
+        stopAndResetAudioPlayback()
         
         var audioPlayerNode = AVAudioPlayerNode()
         audioEngine.attachNode(audioPlayerNode)
@@ -114,51 +121,36 @@ class PlaySoundsViewController: UIViewController, AVAudioPlayerDelegate {
     }
 
     @IBAction func playSlowAudio(sender: UIButton) {
-        audioPlayer.stop()
-        audioPlayer.currentTime = 0.0
-
-        audioEngine.stop()
-        audioEngine.reset()
-        
-        audioPlayer.rate = 0.5
-        audioPlayer.play()
+        playAudioWithVariableRate(0.5)
         setPlaybackControlsVisibility(false)
     }
 
     @IBAction func playFastAudio(sender: UIButton) {
-        audioPlayer.stop()
-        audioPlayer.currentTime = 0.0
-
-        audioEngine.stop()
-        audioEngine.reset()
-
-        audioPlayer.rate = 2.0
-        audioPlayer.play()
+        playAudioWithVariableRate(2.0)
         setPlaybackControlsVisibility(false)
     }
     
     @IBAction func playChipmunkAudio(sender: UIButton) {
-        setPlaybackControlsVisibility(false)
         playAudioWithVariablePitch(1000)
+        setPlaybackControlsVisibility(false)
     }
     @IBAction func playDarthVaderAudio(sender: UIButton) {
-        setPlaybackControlsVisibility(false)
         playAudioWithVariablePitch(-1000)
+        setPlaybackControlsVisibility(false)
     }
     
     @IBAction func playReverbAudio(sender: UIButton) {
-        setPlaybackControlsVisibility(false)
         playAudioWithReverb()
+        setPlaybackControlsVisibility(false)
     }
     
     @IBAction func playEchoAudio(sender: UIButton) {
-        setPlaybackControlsVisibility(false)
         playAudioWithEcho()
+        setPlaybackControlsVisibility(false)
     }
     
     @IBAction func stopAudio(sender: UIButton) {
-        audioPlayer.stop()
-        audioPlayer.currentTime = 0.0
+        stopAndResetAudioPlayback()
         setPlaybackControlsVisibility(true)
     }
     

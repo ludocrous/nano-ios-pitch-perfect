@@ -128,7 +128,7 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if (segue.identifier == "stopRecording") {
-            //Pass the file reference and title to the PlaySounds View via segue
+            
             let playSoundsVC: PlaySoundsViewController = segue.destinationViewController as! PlaySoundsViewController
             let data = sender as! RecordedAudio
             playSoundsVC.receivedAudio = data
@@ -138,7 +138,7 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     func audioRecorderDidFinishRecording(recorder: AVAudioRecorder!, successfully flag: Bool) {
         if (flag) {
             recordedAudio = RecordedAudio(filePathUrl: recorder.url, title: recorder.url.lastPathComponent!)
-            self.performSegueWithIdentifier("stopRecording", sender: recordedAudio)
+            performSegueWithIdentifier("stopRecording", sender: recordedAudio)
         } else {
             println("Recording not successful")
             recordButton.enabled = true
