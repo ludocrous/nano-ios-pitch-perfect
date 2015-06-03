@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-class PlaySoundsViewController: UIViewController {
+class PlaySoundsViewController: UIViewController, AVAudioPlayerDelegate {
 
     var audioPlayer = AVAudioPlayer()
     var receivedAudio : RecordedAudio!
@@ -18,12 +18,12 @@ class PlaySoundsViewController: UIViewController {
     var audioFile : AVAudioFile!
     
     @IBOutlet weak var stopButton: UIButton!
-    @IBOutlet weak var volumeSlider: UISlider!
    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         audioPlayer = AVAudioPlayer(contentsOfURL: receivedAudio.filePathUrl, error: nil)
+        audioPlayer.delegate = self
         audioPlayer.enableRate = true
         audioPlayer.prepareToPlay()
 
@@ -31,7 +31,6 @@ class PlaySoundsViewController: UIViewController {
         audioFile = AVAudioFile(forReading: receivedAudio.filePathUrl, error: nil)
         
         setPlaybackControlsVisibility(true)
-        volumeSlider.value = audioPlayer.volume
     }
 
     override func didReceiveMemoryWarning() {
@@ -40,8 +39,12 @@ class PlaySoundsViewController: UIViewController {
     }
     
     func setPlaybackControlsVisibility(hidden : Bool) {
+        // This function controls the visibility of the stop button
         stopButton.hidden = hidden
-        volumeSlider.hidden = hidden
+    }
+    
+    func enginePlaybackCompletionHandler() -> () {
+        setPlaybackControlsVisibility(true)
     }
     
     func playAudioWithVariablePitch(pitch: Float){
@@ -59,13 +62,64 @@ class PlaySoundsViewController: UIViewController {
         audioEngine.connect(audioPlayerNode, to: changePitchEffect, format: nil)
         audioEngine.connect(changePitchEffect, to: audioEngine.outputNode, format: nil)
         
-        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: nil)
+        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: enginePlaybackCompletionHandler)
         audioEngine.startAndReturnError(nil)
         
         audioPlayerNode.play()
     }
+    
+
+    func playAudioWithReverb(){
+        audioPlayer.stop()
+        audioEngine.stop()
+        audioEngine.reset()
+        
+        var audioPlayerNode = AVAudioPlayerNode()
+        audioEngine.attachNode(audioPlayerNode)
+        
+        var audioReverb = AVAudioUnitReverb()
+        audioReverb.wetDryMix = 100
+        audioEngine.attachNode(audioReverb)
+        
+        audioEngine.connect(audioPlayerNode, to: audioReverb, format: nil)
+        audioEngine.connect(audioReverb, to: audioEngine.outputNode, format: nil)
+        
+        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: enginePlaybackCompletionHandler)
+        audioEngine.startAndReturnError(nil)
+        
+        audioPlayerNode.play()
+    }
+
+    func playAudioWithEcho(){
+        audioPlayer.stop()
+        audioEngine.stop()
+        audioEngine.reset()
+        
+        var audioPlayerNode = AVAudioPlayerNode()
+        audioEngine.attachNode(audioPlayerNode)
+        
+        var audioEcho = AVAudioUnitDelay()
+        audioEcho.wetDryMix = 100
+        audioEcho.feedback = 50
+        audioEcho.delayTime = 0.5
+        audioEngine.attachNode(audioEcho)
+        
+        audioEngine.connect(audioPlayerNode, to: audioEcho, format: nil)
+        audioEngine.connect(audioEcho, to: audioEngine.outputNode, format: nil)
+        
+        audioPlayerNode.scheduleFile(audioFile, atTime: nil, completionHandler: enginePlaybackCompletionHandler)
+        audioEngine.startAndReturnError(nil)
+        
+        audioPlayerNode.play()
+    }
+
     @IBAction func playSlowAudio(sender: UIButton) {
         audioPlayer.stop()
+        audioPlayer.currentTime = 0.0
+
+        audioEngine.stop()
+        audioEngine.reset()
+        
         audioPlayer.rate = 0.5
         audioPlayer.play()
         setPlaybackControlsVisibility(false)
@@ -73,16 +127,33 @@ class PlaySoundsViewController: UIViewController {
 
     @IBAction func playFastAudio(sender: UIButton) {
         audioPlayer.stop()
+        audioPlayer.currentTime = 0.0
+
+        audioEngine.stop()
+        audioEngine.reset()
+
         audioPlayer.rate = 2.0
         audioPlayer.play()
         setPlaybackControlsVisibility(false)
     }
     
     @IBAction func playChipmunkAudio(sender: UIButton) {
+        setPlaybackControlsVisibility(false)
         playAudioWithVariablePitch(1000)
     }
     @IBAction func playDarthVaderAudio(sender: UIButton) {
+        setPlaybackControlsVisibility(false)
         playAudioWithVariablePitch(-1000)
+    }
+    
+    @IBAction func playReverbAudio(sender: UIButton) {
+        setPlaybackControlsVisibility(false)
+        playAudioWithReverb()
+    }
+    
+    @IBAction func playEchoAudio(sender: UIButton) {
+        setPlaybackControlsVisibility(false)
+        playAudioWithEcho()
     }
     
     @IBAction func stopAudio(sender: UIButton) {
@@ -90,18 +161,10 @@ class PlaySoundsViewController: UIViewController {
         audioPlayer.currentTime = 0.0
         setPlaybackControlsVisibility(true)
     }
-    @IBAction func changeVolume(sender: UISlider) {
-        audioPlayer.volume = volumeSlider.value
+    
+    func audioPlayerDidFinishPlaying(player: AVAudioPlayer!, successfully flag: Bool) {
+        setPlaybackControlsVisibility(true)
     }
     
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }

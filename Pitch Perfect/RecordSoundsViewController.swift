@@ -12,6 +12,7 @@ import AVFoundation
 var audioRecorder : AVAudioRecorder!
 var recordedAudio : RecordedAudio!
 
+// Enumerated type to describe the status of the Recording View
 enum RecordingViewStatus {
     case Initial
     case Recording
@@ -26,7 +27,9 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     @IBOutlet weak var recordButton: UIButton!
     @IBOutlet weak var pauseButton: UIButton!
     @IBOutlet weak var resumeButton: UIButton!
-    
+   
+    // Create a variable to hold the view status and use a property observer to manipulate
+    // visibility and enabled status of UI elements
     var viewStatus : RecordingViewStatus = RecordingViewStatus.Initial {
         didSet {
             setViewConfiguration (self.viewStatus)
@@ -50,7 +53,7 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     func setViewConfiguration (status : RecordingViewStatus) {
         switch status {
         case .Initial:
-            recordLabel.text = "Tap To Record"
+            recordLabel.text = "Tap to record"
             recordButton.enabled = true
             
             stopButton.hidden = true
@@ -70,7 +73,7 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
             resumeButton.enabled = false
         case .Paused:
             recordButton.enabled = false
-            recordLabel.text = "Recording Paused"
+            recordLabel.text = "Recording paused"
 
             resumeButton.enabled = true
             pauseButton.enabled = false
@@ -84,17 +87,18 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
         //Record the user's voice
         let dirPath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0] as! String
         
+        //Create unique filename based on timestamp
         let currentDateTime = NSDate()
         let formatter = NSDateFormatter()
         formatter.dateFormat = "ddMMyyyy-HHmmss"
         let recordingName = formatter.stringFromDate(currentDateTime)+".wav"
         let pathArray = [dirPath, recordingName]
         let filePath = NSURL.fileURLWithPathComponents(pathArray)
-        println(filePath)
         
         var session = AVAudioSession.sharedInstance()
         session.setCategory(AVAudioSessionCategoryPlayAndRecord, error: nil)
         
+        // Instantiate the audioRecorder
         audioRecorder = AVAudioRecorder(URL: filePath, settings: nil, error: nil)
         audioRecorder.delegate = self
         audioRecorder.meteringEnabled = true
@@ -103,11 +107,13 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     }
     
     @IBAction func pauseRecording(sender: UIButton) {
+        // Pause recording without resetting AudioRecorder
         viewStatus = RecordingViewStatus.Paused
         audioRecorder.pause()
     }
     
     @IBAction func resumeRecording(sender: UIButton) {
+        // Resume recording
         viewStatus = RecordingViewStatus.Recording
         audioRecorder.record()
     }
@@ -122,6 +128,7 @@ class RecordSoundsViewController: UIViewController, AVAudioRecorderDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if (segue.identifier == "stopRecording") {
+            //Pass the file reference and title to the PlaySounds View via segue
             let playSoundsVC: PlaySoundsViewController = segue.destinationViewController as! PlaySoundsViewController
             let data = sender as! RecordedAudio
             playSoundsVC.receivedAudio = data
