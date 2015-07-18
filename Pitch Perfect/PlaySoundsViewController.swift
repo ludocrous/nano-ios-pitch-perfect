@@ -12,10 +12,10 @@ import AVFoundation
 class PlaySoundsViewController: UIViewController, AVAudioPlayerDelegate {
 
     var audioPlayer = AVAudioPlayer()
-    var receivedAudio : RecordedAudio!
+    var receivedAudio: RecordedAudio!
     
-    var audioEngine : AVAudioEngine!
-    var audioFile : AVAudioFile!
+    var audioEngine: AVAudioEngine!
+    var audioFile: AVAudioFile!
     
     @IBOutlet weak var stopButton: UIButton!
    
